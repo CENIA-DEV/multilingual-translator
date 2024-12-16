@@ -13,6 +13,8 @@ class Translator(AcceleratorModule):
             args.MODEL, cache_dir="cache", config=config
         )
 
+        # Parameters of models like mT5 are not contiguous, and if training on
+        # DeepSpeed, this could raise an error.
         for param in self.model.parameters():
             if not param.is_contiguous():
                 param.data = param.data.contiguous()
