@@ -1,1 +1,5 @@
+.env
 /config/*
+data/
+config/
+src/*/

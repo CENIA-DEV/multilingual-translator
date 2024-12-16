@@ -1,0 +1,47 @@
+#resume: false  #  <-- force resuming from checkpoint
+
+######### MLFlow Setup #########
+track_name: your-experiment-name
+run_name: your-run-name
+
+log_every: 10 # steps
+evaluate_every_n_steps: 400
+
+######### Model Configuration #########
+model: facebook/nllb-200-distilled-600M
+tokenizer: facebook/nllb-200-distilled-600M
+model_path: your-new-nllb-model
+compile: true
+
+dropout: 0.1
+rdrop: false
+rdrop_alpha: 5
+label_smoothing: 0.1
+max_length: 200
+
+######### Dataset setup #########
+train_dataset: path-to-your-training-data
+validation_dataset: path-to-your-validation-data
+
+maps:
+  spa: spa_Latn
+  eng: eng_Latn
+
+# If not specified, directions to evaluate will be inferred automatically.
+# Directions will be based on the key of the validation dataset.
+directions:
+  # Directions are separated by '-' character, meaning: 'source-target'.
+  - spa-eng
+  - eng-spa
+
+######### Hyper Parameters configuration #########
+# Check https://github.com/ghanvert/AcceleratorModule for different optimizers and schedulers available.
+hps:
+  epochs: 10
+  batch_size: 32
+  optim:
+    type: Adam
+    lr: 1e-3
+  scheduler:
+    type: LinearWithWarmup
+    warmup_ratio: 0.2
