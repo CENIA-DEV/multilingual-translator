@@ -21,7 +21,7 @@ class TokenizerWrapper:
     ) -> dict:
         if isinstance(self.tokenizer, NllbTokenizerFast):
             input_ids = self.tokenizer.encode(text, **self.kwargs)
-            input_ids[0] = self.tokenizer.convert_tokens_to_ids(src_lang)
+            input_ids[:, 0] = self.tokenizer.convert_tokens_to_ids(src_lang)
         elif isinstance(self.tokenizer, T5TokenizerFast):
             input_ids = self.tokenizer.encode(src_lang + text, **self.kwargs)
 
