@@ -32,7 +32,7 @@ class TokenizerWrapper:
         if target_text is not None:
             if isinstance(self.tokenizer, NllbTokenizerFast):
                 labels = self.tokenizer.encode(target_text, **self.kwargs)
-                labels[0] = self.tokenizer.convert_tokens_to_ids(tgt_lang)
+                labels[:, 0] = self.tokenizer.convert_tokens_to_ids(tgt_lang)
             elif isinstance(self.tokenizer, T5TokenizerFast):
                 labels = self.tokenizer.encode(tgt_lang + target_text, **self.kwargs)
 
