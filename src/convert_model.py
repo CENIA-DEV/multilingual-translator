@@ -15,9 +15,9 @@
 
 from argparse import ArgumentParser
 
-from transformers import AutoModelForSeq2SeqLM, T5TokenizerFast
+from transformers import AutoModelForSeq2SeqLM, NllbTokenizerFast, T5TokenizerFast
 
-from utils import add_new_languages
+from utils import add_new_languages, copy_from_tokens
 
 parser = ArgumentParser(description="Convert model and tokenizer.")
 parser.add_argument("model", type=str, help="Path to the model.")
@@ -29,20 +29,28 @@ parser.add_argument(
 parser.add_argument(
     "--new-tokens", type=str, nargs="+", required=True, help="New tokens to add."
 )
-parser.add_argument("--type", type=str, default="mt5", help="Model type.")
+parser.add_argument(
+    "--from-tokens",
+    type=str,
+    nargs="+",
+    help="Copy embeddings from previous tokens to the new tokens. Use '_' to ignore.",
+)
+parser.add_argument("--type", type=str, required=True, help="Model type.")
 parser.add_argument("--output", "-O", required=True, type=str, help="Output path.")
 args = parser.parse_args()
 
-available_types = ["mt5"]
+available_types = ["mt5", "nllb"]
 model_type = args.type.lower()
 assert model_type in available_types, f"Available models types are: {available_types}"
 
-# TODO We're only supporting mT5 models for now.
 model_path = args.model
 tokenizer_path = model_path if args.tokenizer is None else args.tokenizer
 model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
-tokenizer = T5TokenizerFast.from_pretrained(tokenizer_path)
+tokenizer_type = T5TokenizerFast if model_type == "mt5" else NllbTokenizerFast
+tokenizer = tokenizer_type.from_pretrained(tokenizer_path)
 
 add_new_languages(tokenizer, model, args.new_tokens)
+if args.from_tokens is not None:
+    copy_from_tokens(tokenizer, model, args.new_tokens, args.from_tokens)
 model.save_pretrained(args.output, safe_serialization=False)
 tokenizer.save_pretrained(args.output)

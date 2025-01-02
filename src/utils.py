@@ -18,6 +18,7 @@ from collections import defaultdict
 from typing import Any, Union
 
 import torch
+from transformers import NllbTokenizerFast
 
 
 def load_jsonl(path: str) -> list[dict]:
@@ -65,6 +66,27 @@ def add_new_languages(tokenizer: Any, model: Any, languages: Union[dict, list]):
         print(f"Adding: {languages}")
         tokenizer.add_special_tokens({"additional_special_tokens": languages})
         model.resize_token_embeddings(len(tokenizer))
+
+
+def copy_from_tokens(
+    tokenizer: Any, model: Any, new_tokens: list[str], copy_tokens: list[str]
+):
+    assert len(new_tokens) == len(
+        copy_tokens
+    ), "'new_tokens' and 'copy_tokens' must be the same size."
+    vocab = tokenizer.get_vocab()
+
+    shared = (
+        model.model.shared if isinstance(tokenizer, NllbTokenizerFast) else model.shared
+    )
+
+    for new_token, copy_token in zip(new_tokens, copy_tokens):
+        if copy_token == "_":
+            continue
+
+        orig_embedding = shared.weight.data[vocab[copy_token]]
+        shared.weight.data[vocab[new_token]] = orig_embedding.clone()
+        print(f"Initialized embedding for '{new_token}' as '{copy_token}'.")
 
 
 def direction_map_collator(batch: list[dict]) -> dict:
