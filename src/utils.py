@@ -14,9 +14,10 @@
 # limitations under the License.
 
 import json
+from collections import defaultdict
 from typing import Any, Union
 
-from transformers import T5TokenizerFast
+import torch
 
 
 def load_jsonl(path: str) -> list[dict]:
@@ -52,10 +53,6 @@ def add_new_languages(tokenizer: Any, model: Any, languages: Union[dict, list]):
         `maps` (`dict`):
             Dictionary containing languages as values.
     """
-    assert isinstance(
-        tokenizer, (T5TokenizerFast)
-    ), f"Currently, {type(tokenizer)} does not support adding new languages."
-
     if len(languages) == 0:
         return
 
@@ -68,3 +65,31 @@ def add_new_languages(tokenizer: Any, model: Any, languages: Union[dict, list]):
         print(f"Adding: {languages}")
         tokenizer.add_special_tokens({"additional_special_tokens": languages})
         model.resize_token_embeddings(len(tokenizer))
+
+
+def direction_map_collator(batch: list[dict]) -> dict:
+    """
+    Collates returns of `__getitem__` in `Dataset` for translation directions. The key
+    difference between this collator and the default PyTorch's collator is that this
+    function handles `None` objects by not appending them in the resulting batch. If
+    some elements are `None` in the batch, the resulting batch will be of size
+    `batch_size - none_objects` for those keys where a value of `None` was present.
+    """
+    return_dict = defaultdict(dict)
+
+    for data in batch:
+        for k1, v1 in data.items():
+            if v1 is not None:
+                for k2, v2 in data[k1].items():
+                    if v2 is not None:
+                        if k2 not in return_dict[k1]:
+                            return_dict[k1][k2] = []
+                        return_dict[k1][k2].append(v2)
+
+    return_dict = dict(return_dict)
+    for k in return_dict.keys():
+        for k2, v2 in return_dict[k].items():
+            stack = torch.stack if isinstance(v2[0], torch.Tensor) else torch.tensor
+            return_dict[k][k2] = stack(v2)
+
+    return return_dict

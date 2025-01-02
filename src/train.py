@@ -23,6 +23,7 @@ from arguments import TrainingArguments, get_config
 from dataset import Multidirectional
 from metrics import get_metric_modules
 from model import Translator
+from utils import direction_map_collator
 
 load_dotenv()
 TRACKING_URI = os.environ["MLFLOW_TRACKING_URI"]
@@ -62,7 +63,8 @@ trainer = Trainer(
     run_name=args.RUN_NAME,
     metrics=get_metric_modules(val_dataset.directions, tokenizer),
     monitor=Monitor(learning_rate=True),
-    eval_when_start=False,
+    eval_when_start=True,
+    collate_fn_val=direction_map_collator,
 )
 
 trainer.fit(module, train_dataset, val_dataset)

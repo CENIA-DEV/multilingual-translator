@@ -113,8 +113,15 @@ class Multidirectional(Dataset):
             return_dict = dict()
             for direction in self.directions:
                 source, target = direction.split(self.direction_separator)
+                # ignore directions
                 if source not in direction or target not in direction:
                     continue
+
+                # check for source and target in data since it may not
+                # contain these keys
+                if source not in self.data[idx] or target not in self.data[idx]:
+                    continue
+
                 src_lang = source if self.maps is None else self.maps[source]
                 tgt_lang = target if self.maps is None else self.maps[target]
 
