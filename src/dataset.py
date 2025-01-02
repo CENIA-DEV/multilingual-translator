@@ -18,7 +18,7 @@ from typing import Any, Optional
 from torch.utils.data import Dataset
 
 from tokenizer_wrapper import TokenizerWrapper
-from utils import load_jsonl
+from utils import get_directions, load_jsonl
 
 
 class Multidirectional(Dataset):
@@ -70,23 +70,9 @@ class Multidirectional(Dataset):
         self.maps = maps
         if self.is_val:
             if directions is None:
-                directions = self._get_directions()
+                directions = get_directions(self.data, self.direction_separator)
 
             self.directions = directions
-
-    def _get_directions(self):
-        keys = set()
-        for d in self.data:
-            for k in d.keys():
-                keys.add(k)
-
-        directions = []
-        for source in keys:
-            for target in keys:
-                if source != target:
-                    directions.append(f"{source}{self.direction_separator}{target}")
-
-        return directions
 
     def __getitem__(self, idx):
         if not self.is_val:

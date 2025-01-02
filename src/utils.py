@@ -115,3 +115,18 @@ def direction_map_collator(batch: list[dict]) -> dict:
             return_dict[k][k2] = stack(v2)
 
     return return_dict
+
+
+def get_directions(data: list[dict], direction_separator: str):
+    keys = set()
+    for d in data:
+        for k in d.keys():
+            keys.add(k)
+
+    directions = []
+    for source in keys:
+        for target in keys:
+            if source != target:
+                directions.append(f"{source}{direction_separator}{target}")
+
+    return directions
