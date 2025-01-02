@@ -65,8 +65,10 @@ Also, you must have a `.env` file in this directory (`multilingual-translator/`)
 ## Training
 Before training mT5 models, you need to make sure to add language tokens to both the tokenizer and the model's embeddings. For this, you can use the script `convert_model.py`:
 ```bash
-python convert_model <path-to-mt5-model> --new-tokens=<list-of-tokens> -O <output-path>
+python convert_model <path-to-mt5-model> --new-tokens=<list-of-tokens> --from-tokens=<list-of-previous-tokens> -O <output-path>
 ```
+
+You will add new tokens via `new-tokens`. If you want to copy embeddings from previous tokens to the new ones, you can use `from-tokens`. Both lists of tokens must have the same size. If you want to ignore the process of copying embeddings to a specific token, ignore them using `_` character in `from-tokens`.
 
 ## Inference
 Example:
